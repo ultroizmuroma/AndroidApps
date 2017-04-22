@@ -13,8 +13,6 @@ public class Enemy extends DynamicObject {
 
     private int impactFactor;
 
-    private boolean alive;
-
     public Enemy(Context context, Point screen) {
         super(context, R.drawable.enemy, new Point(screen), screen);
         maxX = screen.x;
@@ -24,37 +22,18 @@ public class Enemy extends DynamicObject {
 
         Random generator = new Random();
         speed = generator.nextInt(6) + 10;
-        position.x = screen.x;
-        position.y = generator.nextInt(maxY) - bitmap.getHeight();
-        System.out.println("Enemy" + position);
+        refresh();
         impactFactor = 0;
-        alive = true;
     }
 
     @Override
     public void onUpdateAction() {
         position.x -= impactFactor;
         position.x -= speed;
-//        if (position.x < minX - bitmap.getWidth()) {
-//            Random generator = new Random();
-//            speed = generator.nextInt(6) + 10;
-//            position.x = maxX;
-//            position.y = generator.nextInt(maxY) - bitmap.getHeight();
-//            System.out.println("Enemy" + position);
-//        }
     }
 
     public void setImpactFactor(int playerSpeed) {
         impactFactor = playerSpeed;
-    }
-
-    public boolean isAlive() {
-        return alive;
-    }
-
-    // TODO: 18.04.2017 Здесь же и будет обновление объекта 
-    public void kill() {
-        alive = false;
     }
 
     public boolean beyondEdge() {

@@ -38,7 +38,6 @@ public class GameView extends SurfaceView implements Runnable {
 
     private Point screen;
     private int countMisses;
-    private boolean enemyAppeared;
     private boolean isGameOver;
 
     private int score;
@@ -47,27 +46,36 @@ public class GameView extends SurfaceView implements Runnable {
     SharedPreferences sharedPreferences;
 
     private static MediaPlayer gameOnSound;
-    private final MediaPlayer killedEnemySound;
-    private final MediaPlayer gameoverSound;
+    private static MediaPlayer killedEnemySound;
+    private static MediaPlayer gameoverSound;
+
+    private ObjectFactory objectFactory;
 
     private Context context;
 
     public GameView(Context context, Point screen) {
         super(context);
-
         this.context = context;
+        this.screen = screen;
 
+        objectFactory = new ObjectFactory(context, screen);
+        player = objectFactory.createPlayer();
+        enemy = objectFactory.createEnemy();
+        friend = objectFactory.createFriend();
+
+        initOthers();
+    }
+
+    // TODO: 22.04.2017 Раскидать параметры инициализации
+    private void initOthers() {
         // TODO: 17.04.2017 Включить музыку на последней стадии
         gameOnSound = MediaPlayer.create(context, R.raw.gameon);
         killedEnemySound = MediaPlayer.create(context, R.raw.killedenemy);
         gameoverSound = MediaPlayer.create(context, R.raw.gameover);
         //gameOnSound.start();
 
-        this.screen = screen;
         countMisses = 0;
         isGameOver = false;
-
-        player = new Player(context, screen);
 
         surfaceHolder = getHolder();
         paint = new Paint();
@@ -77,10 +85,6 @@ public class GameView extends SurfaceView implements Runnable {
             Star s = new Star(screen.x, screen.y);
             stars.add(s);
         }
-
-        createEnemy();
-
-        createFriend();
 
         boom = new Boom(context);
 
@@ -92,17 +96,9 @@ public class GameView extends SurfaceView implements Runnable {
         highScore[3] = sharedPreferences.getInt("score4", 0);
     }
 
-    // TODO: 18.04.2017 Создание противника переделать на обнуление параметров, а не создание нового
-    public void createEnemy() {
-        enemy = new Enemy(context, screen);
-    }
-
-    public void createFriend() {
-        friend = new Friend(context, screen);
-    }
-
     @Override
     public void run() {
+        // TODO: 22.04.2017 у фабрики должны быть наборы всех объектов. и именно она должна манипулировать с ними.
         while (playing) {
             update();
             draw();
@@ -135,7 +131,7 @@ public class GameView extends SurfaceView implements Runnable {
             friend.kill();
         }
         if (!friend.isAlive()) {
-            createFriend();
+            friend.refresh();
         }
         friend.setImpactFactor(player.getSpeed());
         friend.update();
@@ -147,7 +143,7 @@ public class GameView extends SurfaceView implements Runnable {
             enemy.kill();
         }
         if (!enemy.isAlive()) {
-            createEnemy();
+            enemy.refresh();
         }
         enemy.setImpactFactor(player.getSpeed());
         enemy.update();
@@ -245,27 +241,15 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void drawPlayer() {
         //canvas.drawCircle(player.getDetectCollision().centerX(), player.getDetectCollision().centerY(), (player.getBitmap().getHeight() + player.getBitmap().getWidth())/ 4, paint);
-        canvas.drawBitmap(
-                player.getBitmap(),
-                player.getX(),
-                player.getY(),
-                paint);
+        player.draw(canvas, paint);
     }
 
     private void drawFriend() {
-        canvas.drawBitmap(
-                friend.getBitmap(),
-                friend.getX(),
-                friend.getY(),
-                paint);
+        friend.draw(canvas, paint);
     }
 
     private void drawEnemy() {
-        canvas.drawBitmap(
-                enemy.getBitmap(),
-                enemy.getX(),
-                enemy.getY(),
-                paint);
+        enemy.draw(canvas, paint);
     }
 
     private void drawGameOver() {
