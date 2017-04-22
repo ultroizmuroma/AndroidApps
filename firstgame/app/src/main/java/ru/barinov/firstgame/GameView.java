@@ -122,7 +122,6 @@ public class GameView extends SurfaceView implements Runnable {
         updateEnemy();
         intersectEnemy();
         intersectFriend();
-
     }
 
     private void updateStars() {
