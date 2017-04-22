@@ -120,7 +120,8 @@ public class GameView extends SurfaceView implements Runnable {
         updateStars();
         updateFriend();
         updateEnemy();
-        updateFriendAndEnemy();
+        intersectEnemy();
+        intersectFriend();
 
     }
 
@@ -153,10 +154,7 @@ public class GameView extends SurfaceView implements Runnable {
         enemy.update();
     }
 
-    // TODO: 18.04.2017 Метод, в котором проверяется пропуск противника, переделать
-    private void updateFriendAndEnemy() {
-        enemy.setImpactFactor(player.getSpeed());
-        enemy.update();
+    private void intersectEnemy() {
         // TODO: 16.04.2017 Добавить прибавление очков за сбитого врага
         // TODO: 16.04.2017 Пересмотреть механизм коллизий. Нужно скорее всего не прямоугольником, а круго, так будет логичней
         if (Rect.intersects(player.getDetectCollision(), enemy.getDetectCollision())) {
@@ -165,57 +163,47 @@ public class GameView extends SurfaceView implements Runnable {
             killedEnemySound.start();
             //enemy.setX(-300);
             enemy.kill();
-
         } else {
-            if (countMisses == 3) {
-                playing = false;
-                isGameOver = true;
-
-                gameOnSound.stop();
-                gameoverSound.start();
-
-                for (int j = 0; j < 4; j++) {
-                    if (highScore[j] < score) {
-                        final int finalJ = j;
-                        highScore[j] = score;
-                        break;
-                    }
-                }
-
-                SharedPreferences.Editor e = sharedPreferences.edit();
-                for (int j = 0; j < 4; j++) {
-                    int k = j + 1;
-                    e.putInt("score" + k, highScore[j]);
-                }
-                e.apply();
+            if (gameoverCondition()) {
+                gameover();
             }
         }
+    }
 
+    private boolean gameoverCondition() {
+        return countMisses == 3;
+    }
+
+    private void intersectFriend() {
         // TODO: 16.04.2017 Отображение взрыва должно осуществляться прямо по центру.
         if (Rect.intersects(player.getDetectCollision(), friend.getDetectCollision())) {
             boom.setX(friend.getX());
             boom.setY(friend.getY());
-            playing = false;
-            isGameOver = true;
-
-            gameOnSound.stop();
-            gameoverSound.start();
-
-            for (int i = 0; i < 4; i++) {
-                if (highScore[i] < score) {
-                    final int finalI = i;
-                    highScore[i] = score;
-                    break;
-                }
-            }
-
-            SharedPreferences.Editor e = sharedPreferences.edit();
-            for(int i = 0; i < 4; i++){
-                int j = i + 1;
-                e.putInt("score" + j, highScore[i]);
-            }
-            e.apply();
+            gameover();
         }
+    }
+
+    private void gameover() {
+        playing = false;
+        isGameOver = true;
+
+        gameOnSound.stop();
+        gameoverSound.start();
+
+        for (int i = 0; i < 4; i++) {
+            if (highScore[i] < score) {
+                final int finalI = i;
+                highScore[i] = score;
+                break;
+            }
+        }
+
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        for(int i = 0; i < 4; i++){
+            int j = i + 1;
+            e.putInt("score" + j, highScore[i]);
+        }
+        e.apply();
     }
 
     private void draw() {
